@@ -1,0 +1,32 @@
+{
+  "name": "ts-matcher",
+  "version": "0.1.0",
+  "author": "monnef",
+  "license": "MIT",
+  "main": "dist/src/Matcher.js",
+  "typings": "dist/src/Matcher.d.ts",
+  "scripts": {
+    "clean": "rimraf dist",
+    "lint": "tslint ./**/*.ts",
+    "pretest": "yarn run lint",
+    "test": "mocha --require ts-node/register test/**/*.ts",
+    "prebuild": "yarn run clean && yarn run test",
+    "build": "tsc --outDir ./dist -p . ",
+    "precommit": "yarn run build"
+  },
+  "devDependencies": {
+    "@types/chai": "4.0.4",
+    "@types/mocha": "2.2.40",
+    "chai": "4.1.1",
+    "husky": "0.14.3",
+    "mocha": "3.5.0",
+    "rimraf": "2.6.1",
+    "ts-node": "3.0.2",
+    "tslint": "5.0.0",
+    "typescript": "2.2.2"
+  },
+  "dependencies": {
+    "@types/lodash.isequalwith": "4.4.3",
+    "lodash.isequalwith": "4.4.0"
+  }
+}

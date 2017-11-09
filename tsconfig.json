@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "pretty": true,
+    "sourceMap": true,
+    "target": "ES5",
+    "declaration": true,
+    "outDir": "./dist"
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
+  ]
+}
