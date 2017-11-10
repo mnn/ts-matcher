@@ -1,11 +1,12 @@
 {
   "name": "ts-matcher",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "monnef",
   "license": "MIT",
   "homepage": "https://github.com/mnn/ts-matcher",
   "repository": {
-    "type": "git", "url": "https://github.com/mnn/ts-matcher"
+    "type": "git",
+    "url": "https://github.com/mnn/ts-matcher"
   },
   "main": "dist/src/Matcher.js",
   "typings": "dist/src/Matcher.d.ts",
