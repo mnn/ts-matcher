@@ -135,3 +135,15 @@ Matcher(-5)
   .caseGuarded(x => x > 0, () => 'more')
   .exec(); // 'less'
 ```
+
+### Comparison to multiple values
+
+In some languages, like Scala, one can have multiple values in one `case`.
+With TSMatcher you can compare to multiple values too:
+
+```typescript
+Matcher('c')
+  .caseMulti(['a', 'd', 'e'], () => 2)
+  .caseMulti(['b', 'c'], () => 1)
+  .exec(); // 1
+```

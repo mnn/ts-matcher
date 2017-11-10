@@ -5,6 +5,12 @@ export type Matcher = <T>(input: T) => MatchingEmpty<T>;
 
 export type OnMatch<T, R> = (_: T) => R;
 
+class Utils {
+  static any<T>(xs: T[], pred: (_: T) => boolean): boolean {
+    return xs.map(pred).filter(x => x).length > 0;
+  }
+}
+
 /**
  * Matcher without any cases yet.
  * Not intended for users to be constructed directly.
@@ -13,24 +19,21 @@ export class MatchingEmpty<T> {
   constructor(private value: T) { }
 
   /**
-   * Creates one case. During execution value is being compared to {@param test} and if it matches {@param onMatch} is
-   * called and its return value returned.
-   * @param test - value to match against
-   * @param onMatch - successful match handler
-   * @param customizer - optional parameter used for customizing equality checking
-   * @return {@link Matching} object for adding more cases and as a last call in a chain invoking
-   *                          an execution - {@link exec}.
+   * {@see Matching#case}.
    */
   case<R>(test: T, onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
     return this.createMatching<R>().case(test, onMatch, customizer);
   }
 
   /**
-   * Creates one case.
-   * More generic variant of {@link case}. Accepts a function instead of a value to compare.
-   * @param test - function doing the test
-   * @param onMatch - successful match handler
-   * @return
+   * {@see Matching#caseMulti}.
+   */
+  caseMulti<R>(tests: T[], onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
+    return this.createMatching<R>().caseMulti(tests, onMatch, customizer);
+  }
+
+  /**
+   * {@see Matching#caseGuarded}.
    */
   caseGuarded<R>(test: (_: T) => boolean, onMatch: OnMatch<T, R>): Matching<T, R> {
     return this.createMatching<R>().caseGuarded(test, onMatch);
@@ -62,6 +65,19 @@ export class Matching<T, R> {
    */
   case(test: T, onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
     return this.caseGuarded(x => isEqualWith(x, test, customizer), onMatch);
+  }
+
+  /**
+   * Creates multiple cases. During execution value is being compared to items in {@param tests} and if
+   * any of it matches, {@param onMatch} is called and its return value returned.
+   * @param tests - value to match against
+   * @param onMatch - successful match handler
+   * @param customizer - optional parameter used for customizing equality checking
+   * @return {@link Matching} object for adding more cases and as a last call in a chain invoking
+   *                          an execution - {@link exec}.
+   */
+  caseMulti(tests: T[], onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
+    return this.caseGuarded(x => Utils.any(tests, y => isEqualWith(x, y, customizer)), onMatch);
   }
 
   /**

@@ -1,6 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var isEqualWith = require("lodash.isequalwith");
+var Utils = (function () {
+    function Utils() {
+    }
+    Utils.any = function (xs, pred) {
+        return xs.map(pred).filter(function (x) { return x; }).length > 0;
+    };
+    return Utils;
+}());
 /**
  * Matcher without any cases yet.
  * Not intended for users to be constructed directly.
@@ -10,23 +18,19 @@ var MatchingEmpty = (function () {
         this.value = value;
     }
     /**
-     * Creates one case. During execution value is being compared to {@param test} and if it matches {@param onMatch} is
-     * called and its return value returned.
-     * @param test - value to match against
-     * @param onMatch - successful match handler
-     * @param customizer - optional parameter used for customizing equality checking
-     * @return {@link Matching} object for adding more cases and as a last call in a chain invoking
-     *                          an execution - {@link exec}.
+     * {@see Matching#case}.
      */
     MatchingEmpty.prototype.case = function (test, onMatch, customizer) {
         return this.createMatching().case(test, onMatch, customizer);
     };
     /**
-     * Creates one case.
-     * More generic variant of {@link case}. Accepts a function instead of a value to compare.
-     * @param test - function doing the test
-     * @param onMatch - successful match handler
-     * @return
+     * {@see Matching#caseMulti}.
+     */
+    MatchingEmpty.prototype.caseMulti = function (tests, onMatch, customizer) {
+        return this.createMatching().caseMulti(tests, onMatch, customizer);
+    };
+    /**
+     * {@see Matching#caseGuarded}.
      */
     MatchingEmpty.prototype.caseGuarded = function (test, onMatch) {
         return this.createMatching().caseGuarded(test, onMatch);
@@ -57,6 +61,18 @@ var Matching = (function () {
      */
     Matching.prototype.case = function (test, onMatch, customizer) {
         return this.caseGuarded(function (x) { return isEqualWith(x, test, customizer); }, onMatch);
+    };
+    /**
+     * Creates multiple cases. During execution value is being compared to items in {@param tests} and if
+     * any of it matches, {@param onMatch} is called and its return value returned.
+     * @param tests - value to match against
+     * @param onMatch - successful match handler
+     * @param customizer - optional parameter used for customizing equality checking
+     * @return {@link Matching} object for adding more cases and as a last call in a chain invoking
+     *                          an execution - {@link exec}.
+     */
+    Matching.prototype.caseMulti = function (tests, onMatch, customizer) {
+        return this.caseGuarded(function (x) { return Utils.any(tests, function (y) { return isEqualWith(x, y, customizer); }); }, onMatch);
     };
     /**
      * Creates one case.

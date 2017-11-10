@@ -23,10 +23,10 @@
     "rimraf": "2.6.1",
     "ts-node": "3.0.2",
     "tslint": "5.0.0",
-    "typescript": "2.2.2"
+    "typescript": "2.2.2",
+    "@types/lodash.isequalwith": "4.4.3"
   },
   "dependencies": {
-    "@types/lodash.isequalwith": "4.4.3",
     "lodash.isequalwith": "4.4.0"
   }
 }

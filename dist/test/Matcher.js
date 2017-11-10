@@ -88,6 +88,23 @@ describe('Matcher', function () {
             .default(function () { return 9; })
             .exec()).to.eq(9);
     });
+    it('supports multiple values to compare to', function () {
+        expect(Matcher_1.default(2)
+            .caseMulti([0, 1], function () { return 0; })
+            .caseMulti([2, 3], function () { return 1; })
+            .caseMulti([4, 5], function () { return 2; })
+            .exec()).to.be.eq(1);
+        expect(Matcher_1.default('a')
+            .caseMulti([], function () { return 0; })
+            .caseMulti(['b', 'c', 'd'], function () { return 1; })
+            .caseMulti(['a'], function () { return 2; })
+            .exec()).to.be.eq(2);
+        expect(Matcher_1.default({ a: 2 })
+            .caseMulti([{ a: 0 }, { a: 1 }], function () { return 0; })
+            .caseMulti([{ a: 2 }, { a: 3 }], function () { return 1; })
+            .caseMulti([{ a: 4 }, { a: 5 }], function () { return 2; })
+            .exec()).to.be.eq(1);
+    });
     it('calc example', function () {
         var compute = function (a, b, op) {
             var result = Matcher_1.default(op)

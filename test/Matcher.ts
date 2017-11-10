@@ -119,6 +119,30 @@ describe('Matcher', () => {
     ).to.eq(9);
   });
 
+  it('supports multiple values to compare to', () => {
+    expect(
+      Matcher(2)
+        .caseMulti([0, 1], () => 0)
+        .caseMulti([2, 3], () => 1)
+        .caseMulti([4, 5], () => 2)
+        .exec()
+    ).to.be.eq(1);
+    expect(
+      Matcher('a')
+        .caseMulti([], () => 0)
+        .caseMulti(['b', 'c', 'd'], () => 1)
+        .caseMulti(['a'], () => 2)
+        .exec()
+    ).to.be.eq(2);
+    expect(
+      Matcher({a: 2})
+        .caseMulti([{a: 0}, {a: 1}], () => 0)
+        .caseMulti([{a: 2}, {a: 3}], () => 1)
+        .caseMulti([{a: 4}, {a: 5}], () => 2)
+        .exec()
+    ).to.be.eq(1);
+  });
+
   it('calc example', () => {
     type Operation = '+' | '-' | '*' | '/';
 
