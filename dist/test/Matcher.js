@@ -47,10 +47,26 @@ describe('Matcher', function () {
         expect(ran).to.be.false; // tslint:disable-line
     });
     it('uses deep equality', function () {
-        expect(Matcher_1.default({ a: { b: 4 } })
+        var obj = { a: { b: 5 } };
+        expect(Matcher_1.default(obj)
             .case({ a: { b: 4 } }, function () { return 'a'; })
-            .case({}, function () { return 'b'; })
-            .exec()).to.eq('a');
+            .case({ a: { b: 5 } }, function () { return 'b'; })
+            .exec()).to.eq('b');
+    });
+    it('works nice with interfaces and classes', function () {
+        var C = (function () {
+            function C(a, b) {
+                this.a = a;
+                this.b = b;
+            }
+            return C;
+        }());
+        var x = new C(1, 'f');
+        var y = new C(2, 'b');
+        expect(Matcher_1.default(new C(2, 'b'))
+            .case(x, function () { return 1; })
+            .case(y, function () { return 2; })
+            .exec()).to.eq(2);
     });
     it('crashes on no match', function () {
         assert.throws(function () {
@@ -59,6 +75,11 @@ describe('Matcher', function () {
     });
     it('guarded case', function () {
         expect(Matcher_1.default('x').caseGuarded(function () { return true; }, function (x) { return x + x; }).exec()).to.eq('xx');
+        expect(Matcher_1.default(-5)
+            .caseGuarded(function (x) { return x < 0; }, function () { return 'less'; })
+            .case(0, function () { return 'zero'; })
+            .caseGuarded(function (x) { return x > 0; }, function () { return 'more'; })
+            .exec()).to.eq('less');
     });
     it('default works as expected', function () {
         expect(Matcher_1.default(2)
@@ -66,6 +87,37 @@ describe('Matcher', function () {
             .case(1, function () { return 1; })
             .default(function () { return 9; })
             .exec()).to.eq(9);
+    });
+    it('calc example', function () {
+        var compute = function (a, b, op) {
+            var result = Matcher_1.default(op)
+                .case('+', function () { return a + b; })
+                .case('-', function () { return a - b; })
+                .case('*', function () { return a * b; })
+                .case('/', function () { return a / b; })
+                .exec();
+            return { a: a, b: b, op: op, result: result };
+        };
+        var computeSwitch = function (a, b, op) {
+            var result;
+            switch (op) {
+                case '+':
+                    result = a + b;
+                    break;
+                case '-':
+                    result = a - b;
+                    break;
+                case '*':
+                    result = a * b;
+                    break;
+                case '/':
+                    result = a / b;
+                    break;
+            }
+            return { a: a, b: b, op: op, result: result };
+        };
+        expect(compute(1, 2, '+')).to.eql({ a: 1, b: 2, op: '+', result: 3 });
+        expect(computeSwitch(1, 2, '+')).to.eql({ a: 1, b: 2, op: '+', result: 3 });
     });
 });
 //# sourceMappingURL=Matcher.js.map

@@ -7,11 +7,11 @@ It is a small library which improves `switch` statement from JavaScript/TypeScri
 ## Why?
 
 I am spoiled by advanced `match` in Scala which can match deeply, on more cases at once or use guards.
-This library strives to improve very basic `switch` statement, closing the gap with Scala and other languages with powerful matching.
+This library strives to improve very basic `switch` statement, closing the gap a bit between TypeScript and Scala (and other languages with powerful matching, like Haskell).
 
 ## Show me code!
 
-Let's implemented basic calculator:
+Let's implement a basic calculator:
 
 ```typescript
 import Matcher from 'ts-matcher';
@@ -59,7 +59,7 @@ compute(1, 2, '+'); // {a: 1, b: 2, op: '+', result: 3}
 
 You can see that in many cases TSMatcher is more concise, yet more powerful, than the built-in `switch`.
 Example above mainly demonstrates an ability to use `Matcher` as an expression which is very common in functional languages.
-For more information read features section.
+For more information read the features section.
 
 ## Basic usage
 
