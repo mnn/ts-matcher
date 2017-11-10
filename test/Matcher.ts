@@ -66,12 +66,28 @@ describe('Matcher', () => {
   });
 
   it('uses deep equality', () => {
+    interface AB {a: { b: number }}
+
+    const obj: AB = {a: {b: 5}};
     expect(
-      Matcher<any>({a: {b: 4}})
+      Matcher(obj)
         .case({a: {b: 4}}, () => 'a')
-        .case({}, () => 'b')
+        .case({a: {b: 5}}, () => 'b')
         .exec()
-    ).to.eq('a');
+    ).to.eq('b');
+  });
+
+  it('works nice with interfaces and classes', () => {
+    class C {constructor(public a: number, public b: string) { }}
+
+    const x = new C(1, 'f');
+    const y = new C(2, 'b');
+    expect(
+      Matcher(new C(2, 'b'))
+        .case(x, () => 1)
+        .case(y, () => 2)
+        .exec()
+    ).to.eq(2);
   });
 
   it('crashes on no match', () => {
@@ -84,6 +100,13 @@ describe('Matcher', () => {
     expect(
       Matcher('x').caseGuarded(() => true, x => x + x).exec()
     ).to.eq('xx');
+    expect(
+      Matcher(-5)
+        .caseGuarded(x => x < 0, () => 'less')
+        .case(0, () => 'zero')
+        .caseGuarded(x => x > 0, () => 'more')
+        .exec()
+    ).to.eq('less');
   });
 
   it('default works as expected', () => {
@@ -94,5 +117,46 @@ describe('Matcher', () => {
         .default(() => 9)
         .exec()
     ).to.eq(9);
+  });
+
+  it('calc example', () => {
+    type Operation = '+' | '-' | '*' | '/';
+
+    interface Computation {
+      a: number;
+      b: number;
+      op: Operation;
+      result: number;
+    }
+
+    const compute = (a: number, b: number, op: Operation): Computation => {
+      const result = Matcher(op)
+        .case('+', () => a + b)
+        .case('-', () => a - b)
+        .case('*', () => a * b)
+        .case('/', () => a / b)
+        .exec();
+      return {a, b, op, result};
+    };
+    const computeSwitch = (a: number, b: number, op: Operation): Computation => {
+      let result;
+      switch (op) {
+        case '+':
+          result = a + b;
+          break;
+        case '-':
+          result = a - b;
+          break;
+        case '*':
+          result = a * b;
+          break;
+        case '/':
+          result = a / b;
+          break;
+      }
+      return {a, b, op, result: <number>result};
+    };
+    expect(compute(1, 2, '+')).to.eql({a: 1, b: 2, op: '+', result: 3});
+    expect(computeSwitch(1, 2, '+')).to.eql({a: 1, b: 2, op: '+', result: 3});
   });
 });
