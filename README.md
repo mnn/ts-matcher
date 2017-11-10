@@ -61,6 +61,16 @@ You can see that in many cases TSMatcher is more concise, yet more powerful, tha
 Example above mainly demonstrates an ability to use `Matcher` as an expression which is very common in functional languages.
 For more information read the features section.
 
+## Installation
+
+You can use npm
+
+```
+npm i -S ts-matcher
+```
+
+or grab a compiled version from this repository in `/dist/src` directory.
+
 ## Basic usage
 
 Create a matcher similarly to how one writes a `switch`:
