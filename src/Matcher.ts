@@ -1,5 +1,4 @@
-import isEqualWith = require('lodash.isequalwith');
-import { IsEqualCustomizer } from 'lodash';
+declare function require(moduleName: string): any;
 
 export type Matcher = <T>(input: T) => MatchingEmpty<T>;
 
@@ -11,6 +10,32 @@ class Utils {
   }
 }
 
+export type EqualityCheckerCustomizer = any;
+
+export type IsEqualFn = (l: any, r: any, customizer: EqualityCheckerCustomizer) => boolean;
+
+class EqualityChecker {
+  static isEqual: IsEqualFn;
+  static equalFunctionType: string;
+
+  static initialize(isEqualFn?: IsEqualFn): void {
+    if (isEqualFn) {
+      EqualityChecker.isEqual = isEqualFn;
+      EqualityChecker.equalFunctionType = 'custom';
+    } else {
+      try {
+        EqualityChecker.isEqual = require('lodash.isequalwith');
+        EqualityChecker.equalFunctionType = 'lodash';
+      } catch (e) {
+        EqualityChecker.isEqual = (a, b, _) => a === b;
+        EqualityChecker.equalFunctionType = '===';
+      }
+    }
+  }
+}
+
+EqualityChecker.initialize();
+
 /**
  * Matcher without any cases yet.
  * Not intended for users to be constructed directly.
@@ -21,14 +46,14 @@ export class MatchingEmpty<T> {
   /**
    * {@see Matching#case}.
    */
-  case<R>(test: T, onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
+  case<R>(test: T, onMatch: OnMatch<T, R>, customizer?: EqualityCheckerCustomizer): Matching<T, R> {
     return this.createMatching<R>().case(test, onMatch, customizer);
   }
 
   /**
    * {@see Matching#caseMulti}.
    */
-  caseMulti<R>(tests: T[], onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
+  caseMulti<R>(tests: T[], onMatch: OnMatch<T, R>, customizer?: EqualityCheckerCustomizer): Matching<T, R> {
     return this.createMatching<R>().caseMulti(tests, onMatch, customizer);
   }
 
@@ -63,8 +88,8 @@ export class Matching<T, R> {
    * @return {@link Matching} object for adding more cases and as a last call in a chain invoking
    *                          an execution - {@link exec}.
    */
-  case(test: T, onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
-    return this.caseGuarded(x => isEqualWith(x, test, customizer), onMatch);
+  case(test: T, onMatch: OnMatch<T, R>, customizer?: EqualityCheckerCustomizer): Matching<T, R> {
+    return this.caseGuarded(x => EqualityChecker.isEqual(x, test, customizer), onMatch);
   }
 
   /**
@@ -76,8 +101,8 @@ export class Matching<T, R> {
    * @return {@link Matching} object for adding more cases and as a last call in a chain invoking
    *                          an execution - {@link exec}.
    */
-  caseMulti(tests: T[], onMatch: OnMatch<T, R>, customizer?: IsEqualCustomizer): Matching<T, R> {
-    return this.caseGuarded(x => Utils.any(tests, y => isEqualWith(x, y, customizer)), onMatch);
+  caseMulti(tests: T[], onMatch: OnMatch<T, R>, customizer?: EqualityCheckerCustomizer): Matching<T, R> {
+    return this.caseGuarded(x => Utils.any(tests, y => EqualityChecker.isEqual(x, y, customizer)), onMatch);
   }
 
   /**
