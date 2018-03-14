@@ -25,6 +25,7 @@ interface Computation {
   result: number;
 }
 
+// using TSMatcher library
 const compute = (a: number, b: number, op: Operation): Computation => {
   const result = Matcher(op)
     .case('+', () => a + b)
@@ -35,6 +36,7 @@ const compute = (a: number, b: number, op: Operation): Computation => {
   return {a, b, op, result};
 };
 
+// using plain old switch statement
 const computeSwitch = (a: number, b: number, op: Operation): Computation => {
   let result;
   switch (op) {
