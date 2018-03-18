@@ -14,27 +14,38 @@ export type EqualityCheckerCustomizer = any;
 
 export type IsEqualFn = (l: any, r: any, customizer: EqualityCheckerCustomizer) => boolean;
 
-class EqualityChecker {
+export class EqualityChecker {
+  static initialize(isEqualFn?: IsEqualFn): void {
+    EqualityCheckerInternal.initialize(isEqualFn);
+  }
+}
+
+class EqualityCheckerInternal {
   static isEqual: IsEqualFn;
   static equalFunctionType: string;
 
   static initialize(isEqualFn?: IsEqualFn): void {
     if (isEqualFn) {
-      EqualityChecker.isEqual = isEqualFn;
-      EqualityChecker.equalFunctionType = 'custom';
+      EqualityCheckerInternal.isEqual = isEqualFn;
+      EqualityCheckerInternal.equalFunctionType = 'custom';
     } else {
       try {
-        EqualityChecker.isEqual = require('lodash.isequalwith');
-        EqualityChecker.equalFunctionType = 'lodash';
+        EqualityCheckerInternal.isEqual = require('lodash.isequalwith');
+        EqualityCheckerInternal.equalFunctionType = 'lodash';
       } catch (e) {
-        EqualityChecker.isEqual = (a, b, _) => a === b;
-        EqualityChecker.equalFunctionType = '===';
+        EqualityCheckerInternal.isEqual = (a, b, _) => a === b;
+        EqualityCheckerInternal.equalFunctionType = '===';
       }
     }
   }
 }
 
-EqualityChecker.initialize();
+EqualityCheckerInternal.initialize();
+
+export class MatcherConfig {
+  static debug: boolean = true;
+  static execCheckTimeout: number = 1;
+}
 
 /**
  * Matcher without any cases yet.
@@ -76,8 +87,11 @@ export class MatchingEmpty<T> {
 export class Matching<T, R> {
   private test: (_: T) => boolean;
   private onMatch: OnMatch<T, R>;
+  private timeoutRef?: number;
 
-  constructor(private value: T, private tests: Matching<T, R>[]) { }
+  constructor(private value: T, private tests: Matching<T, R>[]) {
+    this.startExecTimeout();
+  }
 
   /**
    * Creates one case. During execution value is being compared to {@param test} and if it matches {@param onMatch} is
@@ -89,7 +103,8 @@ export class Matching<T, R> {
    *                          an execution - {@link exec}.
    */
   case(test: T, onMatch: OnMatch<T, R>, customizer?: EqualityCheckerCustomizer): Matching<T, R> {
-    return this.caseGuarded(x => EqualityChecker.isEqual(x, test, customizer), onMatch);
+    this.stopExecTimeout();
+    return this.caseGuarded(x => EqualityCheckerInternal.isEqual(x, test, customizer), onMatch);
   }
 
   /**
@@ -102,7 +117,8 @@ export class Matching<T, R> {
    *                          an execution - {@link exec}.
    */
   caseMulti(tests: T[], onMatch: OnMatch<T, R>, customizer?: EqualityCheckerCustomizer): Matching<T, R> {
-    return this.caseGuarded(x => Utils.any(tests, y => EqualityChecker.isEqual(x, y, customizer)), onMatch);
+    this.stopExecTimeout();
+    return this.caseGuarded(x => Utils.any(tests, y => EqualityCheckerInternal.isEqual(x, y, customizer)), onMatch);
   }
 
   /**
@@ -113,6 +129,7 @@ export class Matching<T, R> {
    * @return
    */
   caseGuarded(test: (_: T) => boolean, onMatch: OnMatch<T, R>): Matching<T, R> {
+    this.stopExecTimeout();
     this.test = test;
     this.onMatch = onMatch;
     return new Matching<T, R>(this.value, this.tests.concat(this));
@@ -124,6 +141,7 @@ export class Matching<T, R> {
    * @return
    */
   default(onMatch: OnMatch<T, R>): Matching<T, R> {
+    this.stopExecTimeout();
     return this.caseGuarded(() => true, onMatch);
   }
 
@@ -133,12 +151,30 @@ export class Matching<T, R> {
    * @return return value from onMatch handler
    */
   exec(): R {
+    this.stopExecTimeout();
     const process = (remaining: Matching<T, R>[]): R => {
       if (remaining.length <= 0) { throw new Error(`Unmatched value ${this.value}.`); }
       const cur = remaining[0];
       return cur.test(this.value) ? cur.onMatch(this.value) : process(remaining.slice(1));
     };
     return process(this.tests);
+  }
+
+  private startExecTimeout(): void {
+    if (MatcherConfig.debug) {
+      this.timeoutRef = setTimeout(() => this.onExecTimeout(), MatcherConfig.execCheckTimeout);
+    }
+  }
+
+  private stopExecTimeout(): void {
+    if (this.timeoutRef) {
+      clearTimeout(this.timeoutRef);
+      this.timeoutRef = undefined;
+    }
+  }
+
+  private onExecTimeout(): void {
+    throw new Error(`'exec' was not called on matcher for value ${JSON.stringify(this.value)}.`);
   }
 }
 

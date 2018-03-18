@@ -1,5 +1,5 @@
 import * as chai from 'chai';
-import Matcher from '../src/Matcher';
+import Matcher, { MatcherConfig } from '../src/Matcher';
 
 const {expect, assert} = chai;
 
@@ -182,5 +182,34 @@ describe('Matcher', () => {
     };
     expect(compute(1, 2, '+')).to.eql({a: 1, b: 2, op: '+', result: 3});
     expect(computeSwitch(1, 2, '+')).to.eql({a: 1, b: 2, op: '+', result: 3});
+  });
+
+  describe('exec check', () => {
+    before(() => {
+      MatcherConfig.debug = true;
+    });
+
+    after(() => {
+      MatcherConfig.debug = false;
+    });
+
+    it('proper use', () => {
+      Matcher(1).case(1, () => {}).exec();
+    });
+
+    // TODO: how to test throwing from setTimeout?
+
+    it('invalid use', () => {
+      Matcher(1).case(1, () => {});
+    });
+
+    it('invalid use', done => {
+      Matcher(1).case(1, () => {});
+      setTimeout(() => done(), MatcherConfig.execCheckTimeout + 10);
+    });
+
+    it('setTimeout throw', _ => {
+      setTimeout(() => { throw new Error(); }, 1); // this is given, cannot be modified
+    });
   });
 });
