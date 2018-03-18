@@ -199,16 +199,26 @@ describe('Matcher', () => {
 
     // TODO: how to test throwing from setTimeout?
 
-    it('invalid use', () => {
-      Matcher(1).case(1, () => {});
+    it('invalid use', function() {
+      this.timeout(MatcherConfig.execCheckTimeout + 50);
+      const prom = new Promise<any>(function(_, reject) {
+        console.log('prom'); // tslint:disable-line
+        Matcher(1).case(1, () => reject(new Error('did not throw')));
+      });
+      prom.catch(function(err: any) {
+        console.log('prom.catch', err); // tslint:disable-line
+        try {
+          expect(err).to.be.an('error');
+          expect(err.message).to.not.equal('did not throw');
+        } catch (e) {
+          return Promise.reject(e);
+        }
+        return Promise.resolve();
+      });
+      return prom;
     });
 
-    it('invalid use', done => {
-      Matcher(1).case(1, () => {});
-      setTimeout(() => done(), MatcherConfig.execCheckTimeout + 10);
-    });
-
-    it('setTimeout throw', _ => {
+    it.skip('setTimeout throw', _ => {
       setTimeout(() => { throw new Error(); }, 1); // this is given, cannot be modified
     });
   });

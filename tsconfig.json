@@ -13,7 +13,10 @@
     "sourceMap": true,
     "target": "ES5",
     "declaration": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "lib": [
+      "es6"
+    ]
   },
   "exclude": [
     "node_modules",

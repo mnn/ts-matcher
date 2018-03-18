@@ -1,3 +1,5 @@
+import Timer = NodeJS.Timer;
+
 declare function require(moduleName: string): any;
 
 export type Matcher = <T>(input: T) => MatchingEmpty<T>;
@@ -87,7 +89,7 @@ export class MatchingEmpty<T> {
 export class Matching<T, R> {
   private test: (_: T) => boolean;
   private onMatch: OnMatch<T, R>;
-  private timeoutRef?: number;
+  private timeoutRef?: number | Timer;
 
   constructor(private value: T, private tests: Matching<T, R>[]) {
     this.startExecTimeout();
@@ -168,7 +170,7 @@ export class Matching<T, R> {
 
   private stopExecTimeout(): void {
     if (this.timeoutRef) {
-      clearTimeout(this.timeoutRef);
+      clearTimeout(<any>this.timeoutRef);
       this.timeoutRef = undefined;
     }
   }
